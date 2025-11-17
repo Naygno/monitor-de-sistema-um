@@ -1,7 +1,7 @@
 # Script de Monitoramento de Sistema - DevOps Toolkit
 
 ## 📋 Visão Geral
-Script Bash interativo para monitoramento completo de sistemas Linux. Ferramenta essencial para administradores de sistemas e profissionais de DevOps que precisam de insights rápidos sobre performance e troubleshooting.
+Script Bash interativo para monitoramento de sistemas Linux. Ferramenta para administradores de sistemas e profissionais de DevOps que precisam de insights rápidos sobre performance e troubleshooting.
 
 ## 🚀 Funcionalidades
 
@@ -62,8 +62,6 @@ chmod +x monitor-de-sistema.sh
 
 - [ ] Exportação de relatórios em CSV
 - [ ] Agendamento automático via cron
-- [ ] Dashboard web integrado
-- [ ] Alertas por email
 
 ## 🤝 Contribuições
 
