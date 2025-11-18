@@ -8,12 +8,12 @@ while true; do
 	echo
 	echo "=== Monitorar Processos (I) ==="
 	echo "Opções:"
-	echo "1) Consumo de CPU"
-	echo "2) Consumo de MEM"
-	echo "3) Status de Processo"
-	echo "4) Relatóiro de erros de log"
-	echo "5) Automatizar 4)"
-	echo "6) Sair"
+	echo "	1) Consumo de CPU"
+	echo "	2) Consumo de MEM"
+	echo "	3) Status de Processo"
+	echo "	4) Relatóiro de erros de log"
+	echo "	5) Automatizar 4)"
+	echo "	6) Sair"
 	echo "==============================="
 	echo
 
@@ -142,18 +142,29 @@ while true; do
 			'4')
 				read -e -p "Indique o caminho do diretório de logs: " diretorio
 
-
+				i=1
 				while [[ ! "$diretorio" =~ ^/  || ! -d "$diretorio" ]]; do
+
+					if [[ $i -gt 3 ]]; then
+						echo "Número de tentativas excedidas."
+						echo "Encerrando opção..."
+						break
+					fi
+
 					echo "O caminho deve ser absoluto (começar com /)"
 					read -e -p "Indique o caminho: " diretorio
 					ls "$diretorio" > /dev/null 2>&1
 					status_ls=$?
+
+					i=$((i+1))
 				done
 				
 				if [[ $status_ls -eq 1 ]]; then
 					echo "Não foi possível acessar os logs."
 					echo "Acesso negado ou diretório vazio."
 					break
+				elif [[ $i -gt 3 ]]; then
+					continue
 				else
 					while true; do
 
@@ -175,126 +186,137 @@ while true; do
 						read -e -p "Digite a opção: " opcao
 
 						if [[ $opcao =~ ^[0-7] ]]; then
+							
+							k=1
+							while true; do
+								read -e -p "Indique o tempo (h) anterior à sessão atual: " tempo
+								read -e -p "Defina quantas linhas devem ser mostrada:  " qtd_linhas
 
-							read -e -p "Indique o tempo (h) anterior à sessão atual: " tempo
-							read -e -p "Defina quantas linhas devem ser mostrada:  " qtd_linhas
+								if [[ ! $tempo =~ ^[0-9]+$ || ! $qtd_linhas =~ ^[0-9]+$ ]]; then
+									echo "Valor inválido - digite apenas números."
+									k=$((k+1))
+								else
+
+									break
+								fi
+							done
+
+							if [[ $k -gt 3 ]]; then
+								echo "Número de tentativas excedidas."
+								continue
+							fi
+
+							dir_temporario="./monit_temporario_$(date +"%s")"
+							mkdir -p "$dir_temporario"
 
 							case $opcao in
 
 								'0')
 									echo "=== Logs de Nível Emergência ==="
-									journalctl -p --emerg  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p emerg --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "$dir_temporario"/lista_temporaria
 									echo "================================"
-									continue
 									;;
 
 								'1')
 									echo "=== Logs de Nível Alerta ==="
-									journalctl -p --alert  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p alert --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "$dir_temporario"/lista_temporaria
 									echo "================================"
-
-									continue
 									;;
 
 								'2')
 									echo "=== Logs de Nível Crítico ==="
-									journalctl -p --crit  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p crit --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "$dir_temporario"/lista_temporaria
 									echo "================================"
-
-									continue
 									;;
 
 								'3')
 									echo "=== Logs de Nível Erro ==="
-									journalctl -p --err  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p err --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "$dir_temporario"/lista_temporaria
 									echo "================================"
-
-									continue
 									;;
 
 								'4')
 									echo "=== Logs de Nível Aviso ==="
-									journalctl -p --warning  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p warning --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "$dir_temporario"/lista_temporaria
 									echo "================================"
-
-									continue
 									;;
 
 								'5')
 									echo "=== Logs de Nível Notificação ==="
-									journalctl -p --notice  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p notice --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "$dir_temporario"/lista_temporaria
 									echo "================================"
-
-									continue
 									;;
 
 								'6')
 									echo "=== Logs de Nível Informação ==="
-									journalctl -p --info  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p info --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "$dir_temporario"/lista_temporaria
 									echo "================================"
-
-									continue
 									;;
 
 								'7')
 									echo "=== Logs de Nível Depuração ==="
-									journalctl -p --debug  "$tempo hour ago" | head -n $qtd_linhas > lista_temporaria
+									journalctl -p debug --since "$tempo hour ago" | head -n $qtd_linhas > "$dir_temporario"/lista_temporaria
 									while read linha; do # Imprime os processo na tela.
 										echo "$linha"
-									done < lista_temporaria
+									done < "dir_temporario"/lista_temporaria
 									echo "================================"
+									;;
+							esac
+
+							read -e -p "Digite (S)sim ou (N)ão p/ exportar para csv: " csv_opcao
+							var_temp=${csv_opcao^^}
+
+							case $var_temp in
+
+								'S'|'SIM')
+
+									dir_temp_logs="./dir_logs_csv_$(date +"%d%m%Y_%H%M%S")"
+									mkdir -p "$dir_temp_logs"
+
+									touch "$dir_temp_logs"/logs.csv
+
+									awk '{print NR "," $0}' "$dir_temporario"/lista_temporaria > "$dir_temp_logs"/logs.csv 
+
+									rm -rf "$dir_temporario"
+									continue
+									;;
+
+								'N'|'NAO'|'NÃO')
+
+									rm -rf "$dir_temporario"
+									continue
+									;;
+
+								*)
+									echo "Valor inválido."
+									rm -rf "$dir_temporario"
 									continue
 									;;
 							esac
 
-							while true; do
-								read -e -p "Para exportar para csv: (S)sim ou (N)ão" csv_opcao
-								var_temp=${csv_opcao}
-
-								case $var_temp in
-
-									'S'|'SIM')
-										#Instrução
-										continue
-										;;
-
-									'N'|'NAO'|'NÃO')
-
-										continue
-										;;
-
-									*)
-										echo "Valor inválido."
-										continue
-										;;
-								esac
-
-
-							done
-
 						else
-							var_temp=${opcao^^}
+							var_temp=${opcao^^} # Converte letras minúsculas em maiúsculas.
 
 							if [[ $var_temp == "S" || $var_temp == "SAIR" ]]; then
 								echo "Encerrando..."
